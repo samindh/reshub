@@ -107,6 +107,57 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
 .dday-warn{background:#FEF3C7;color:#92400E}
 .dday-danger{background:#FEE2E2;color:#991B1B}
 .dday-exp{background:#F0F2F7;color:#6B7590}
+
+/* ══════════════════════════════════════
+   DASHBOARD — 프로젝트 카드
+══════════════════════════════════════ */
+.dash-pj-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:12px}
+.dash-pj-hd{padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--gray-100);cursor:pointer;transition:background .15s}
+.dash-pj-hd:hover{background:var(--gray-50)}
+.dash-pj-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.dash-pj-name{font-size:13px;font-weight:700;color:var(--gray-800);flex:1}
+.dash-badge{font-size:9px;padding:2px 7px;border-radius:6px;font-weight:700;white-space:nowrap}
+.db-blue{background:var(--blue-light);color:var(--blue)}
+.db-amber{background:var(--amber-light);color:var(--amber)}
+.db-green{background:var(--green-light);color:var(--green)}
+.db-red{background:var(--red-light);color:var(--red)}
+.db-gray{background:var(--gray-100);color:var(--gray-500)}
+.dash-pj-cost{padding:7px 14px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;background:var(--gray-50)}
+.dash-cost-label{font-size:10px;color:var(--gray-500);font-weight:600}
+.dash-cost-val{font-size:12px;font-weight:700;color:var(--gray-800)}
+.dash-res-body{padding:8px 14px 10px;display:flex;flex-direction:column;gap:5px}
+.dash-res-row{display:flex;align-items:flex-start;gap:8px}
+.dash-row-icon{width:26px;height:26px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.dash-row-icon svg{width:13px;height:13px;stroke:currentColor;fill:none}
+.dash-row-chips{display:flex;flex-wrap:wrap;gap:4px;flex:1}
+.dash-divider{height:1px;background:var(--gray-100);margin:1px 0}
+.rchip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;border:1px solid var(--gray-200);background:var(--white);font-size:10px;color:var(--gray-600);font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.rchip:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+.rchip svg{width:11px;height:11px;stroke:currentColor;fill:none;flex-shrink:0}
+.rchip-d{font-size:9px;padding:1px 5px;border-radius:4px;font-weight:700;margin-left:2px}
+.rd-ok{background:#E6F5EE;color:#0E7A4E}
+.rd-warn{background:#FEF3C7;color:#92400E}
+.rd-danger{background:#FEE2E2;color:#991B1B}
+.rd-blue{background:var(--blue-light);color:var(--blue)}
+.rd-gray{background:var(--gray-100);color:var(--gray-500)}
+.more-rchip{border-style:dashed;color:var(--gray-400)}
+.more-rchip:hover{border-color:var(--gray-400);color:var(--gray-600);background:var(--gray-50)}
+.hidden-rchips{display:none;flex-wrap:wrap;gap:4px;margin-top:2px}
+.hidden-rchips.open{display:flex}
+.dash-chart-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:12px}
+.dash-chart-title{font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:12px}
+.dash-chart-wrap{display:flex;flex-direction:column;gap:8px}
+.dash-chart-row{display:flex;align-items:center;gap:10px}
+.dash-chart-label{width:72px;font-size:10px;color:var(--gray-500);font-weight:600;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-chart-bars{flex:1;display:flex;gap:4px;align-items:flex-end;height:48px}
+.dash-month-col{flex:1;display:flex;justify-content:center;align-items:flex-end}
+.dash-bar{width:80%;border-radius:3px 3px 0 0;min-height:2px;cursor:pointer}
+.dash-bar:hover{opacity:.7}
+.dash-month-labels{display:flex;gap:4px;margin-left:82px;margin-top:4px}
+.dash-month-l{flex:1;text-align:center;font-size:9px;color:var(--gray-400);font-weight:600}
+.dash-chart-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-100)}
+.dash-leg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gray-600);font-weight:600}
+.dash-leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 .filter-bar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .fchip{padding:5px 12px;border-radius:20px;border:1px solid var(--gray-200);background:var(--white);cursor:pointer;font-size:11px;font-weight:600;color:var(--gray-500);transition:all .15s}
 .fchip:hover{border-color:var(--blue);color:var(--blue)}
@@ -373,10 +424,8 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
   <div class="content">
     <!-- Dashboard -->
     <div class="page active" id="page-dashboard">
-      <div class="stats-grid" id="stats-grid"></div>
-      <div id="budget-overview"></div>
-      <div class="sec-hd"><span class="sec-title">최근 등록 리소스</span><button class="btn btn-sm" onclick="goPage('resources')">전체 보기 →</button></div>
-      <div class="cards-grid" id="dash-cards"></div>
+      <div id="dash-pj-area"></div>
+      <div id="dash-chart-area"></div>
     </div>
     <!-- Resources -->
     <div class="page" id="page-resources">
@@ -631,15 +680,28 @@ function showLoader(msg='처리 중...'){document.getElementById('loader-msg').t
 function hideLoader(){document.getElementById('loader').classList.remove('show')}
 
 /* ════ MSAL ════ */
-async function signIn(){
-  try{const res=await msalApp.loginPopup({scopes:SCOPES});currentUser=res.account;await initApp();}
-  catch(e){toast('❌ 로그인 실패: '+e.message)}
-}
+
 async function getToken(){
   const account=msalApp.getAllAccounts()[0];
   if(!account) return null;
-  try{const res=await msalApp.acquireTokenSilent({scopes:SCOPES,account});return res.accessToken;}
-  catch{const res=await msalApp.acquireTokenPopup({scopes:SCOPES});return res.accessToken;}
+  try{
+    const res=await msalApp.acquireTokenSilent({scopes:SCOPES,account});
+    return res.accessToken;
+  }catch{
+    try{
+      if(isTeamsOrMobile()){
+        // 리다이렉트 방식
+        await msalApp.acquireTokenRedirect({scopes:SCOPES,account});
+        return null;
+      } else {
+        const res=await msalApp.acquireTokenPopup({scopes:SCOPES});
+        return res.accessToken;
+      }
+    }catch(e2){
+      await msalApp.acquireTokenRedirect({scopes:SCOPES});
+      return null;
+    }
+  }
 }
 async function graphGet(url){
   const token=await getToken();
@@ -815,49 +877,161 @@ function makeCard(r){
 }
 
 /* ════ 대시보드 ════ */
-function renderStats(){
-  const total=resources.length;
-  const inuse=resources.filter(r=>(r.Status||r.status)==='사용중').length;
-  const avail=resources.filter(r=>(r.Status||r.status)==='사용가능').length;
-  const totalExp=expenses.reduce((s,e)=>s+Number(e.Amount||0),0);
-  // 잔여일 30일 이내 경보
-  const expSoon=resources.filter(r=>{const d=calcDday(r.ContractEnd);return d!==null&&d>=0&&d<=30;}).length;
-  document.getElementById('stats-grid').innerHTML=`
-    <div class="stat-card"><div class="stat-label">전체 리소스</div><div class="stat-val">${total}</div><div class="stat-sub">등록된 리소스</div></div>
-    <div class="stat-card"><div class="stat-label">사용 중</div><div class="stat-val">${inuse}</div><div class="stat-sub">현재 배정됨</div></div>
-    <div class="stat-card"><div class="stat-label">만료 임박</div><div class="stat-val" style="color:var(--amber)">${expSoon}</div><div class="stat-sub">30일 이내 계약 종료</div></div>
-    <div class="stat-card"><div class="stat-label">총 비용</div><div class="stat-val" style="font-size:16px">${(totalExp/10000).toFixed(0)}만</div><div class="stat-sub">누적 법인카드 사용액</div></div>`;
+/* ════ 리소스 타입별 순서 및 아이콘 ════ */
+const RES_ROW_ORDER = [
+  {types:['인원'],        color:'#5B3FA6', bg:'#EEE8FF'},
+  {types:['장비'],        color:'#D97706', bg:'#FEF3C7'},
+  {types:['숙소','차량','노트북','인터넷','법인카드','작업복','기타'], color:'#6B7590', bg:'#F0F2F7'},
+];
+
+function rchipDday(endDate){
+  const d=calcDday(endDate);
+  if(d===null) return '<span class="rchip-d rd-blue">사용중</span>';
+  if(d<0)   return '<span class="rchip-d rd-gray">만료</span>';
+  if(d<=7)  return `<span class="rchip-d rd-danger">D-${d}</span>`;
+  if(d<=30) return `<span class="rchip-d rd-warn">D-${d}</span>`;
+  return `<span class="rchip-d rd-ok">D-${d}</span>`;
 }
 
-function renderBudgetOverview(){
-  if(!projects.length){document.getElementById('budget-overview').innerHTML='';return;}
-  const html=projects.filter(p=>Number(p.Budget)>0).map(p=>{
-    const spent=expenses.filter(e=>(e.ProjectName||'')===(p.BizplayName||p.Title)).reduce((s,e)=>s+Number(e.Amount||0),0);
-    const budget=Number(p.Budget||0);
-    const pct=budget?Math.min(100,Math.round(spent/budget*100)):0;
-    const barCls=pct>=90?'danger':pct>=70?'warning':'';
-    return`<div class="budget-section">
-      <div class="budget-header">
-        <span class="budget-title" style="display:flex;align-items:center;gap:6px">
-          <span style="width:8px;height:8px;border-radius:50%;background:${p.Color||'#888'};display:inline-block"></span>
-          ${p.Title}
-        </span>
-        <span class="budget-nums">${(spent/10000).toFixed(0)}만 / ${(budget/10000).toFixed(0)}만원 (${pct}%)</span>
-      </div>
-      <div class="budget-bar-wrap"><div class="budget-bar ${barCls}" style="width:${pct}%"></div></div>
-      <div class="budget-legend">
-        <span class="bleg"><span class="bleg-dot" style="background:var(--blue)"></span>집행 ${(spent/10000).toFixed(0)}만원</span>
-        <span class="bleg"><span class="bleg-dot" style="background:var(--gray-200)"></span>잔여 ${((budget-spent)/10000).toFixed(0)}만원</span>
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('budget-overview').innerHTML=html?`<div class="sec-hd" style="margin-bottom:10px"><span class="sec-title">프로젝트별 예산 현황</span></div>${html}`:'';
+function makeRchip(r){
+  const t=getT(r.ResourceType||r.type);
+  const dHtml=r.ContractEnd?rchipDday(r.ContractEnd):'<span class="rchip-d rd-blue">사용중</span>';
+  return `<div class="rchip" onclick="showDetail('${r.id}')">
+    <svg viewBox="0 0 24 24">${t.svg}</svg>
+    ${r.Title||''}${dHtml}
+  </div>`;
 }
 
 function renderDash(){
-  renderStats();renderBudgetOverview();
-  const recent=[...resources].reverse().slice(0,6);
-  document.getElementById('dash-cards').innerHTML=recent.length?recent.map(makeCard).join(''):`<div class="empty"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><p>등록된 리소스가 없습니다</p></div>`;
+  const activePjs=projects.filter(p=>!p.Status||p.Status==='진행중'||p.Status==='');
+  const allPjs=activePjs.length?activePjs:projects;
+
+  /* ── 프로젝트 카드 ── */
+  const pjHtml=allPjs.map(p=>{
+    const pjRes=resources.filter(r=>{
+      const rPj=r.ProjectName||r.project||'';
+      return rPj===p.id||rPj===p.Title;
+    });
+    const pjExp=expenses.filter(e=>(e.ProjectName||'')===(p.BizplayName||p.Title));
+    // 이번달 지출
+    const thisMonth=new Date().toISOString().slice(0,7);
+    const monthSpent=pjExp.filter(e=>(e.ExpenseDate||'').startsWith(thisMonth)).reduce((s,e)=>s+Number(e.Amount||0),0);
+    const totalSpent=pjExp.reduce((s,e)=>s+Number(e.Amount||0),0);
+    const dday=calcDday(p.EndDate);
+    const ddayBadge=dday===null?'':dday<0?'<span class="dash-badge db-gray">종료</span>':dday<=7?`<span class="dash-badge db-red">D-${dday}</span>`:dday<=30?`<span class="dash-badge db-amber">D-${dday}</span>`:`<span class="dash-badge db-green">D-${dday}</span>`;
+    const uid_pj='pj_'+p.id.replace(/\W/g,'_');
+
+    /* 줄별 리소스 분류 */
+    const row1=pjRes.filter(r=>['인원'].includes(r.ResourceType||r.type));
+    const row2=pjRes.filter(r=>['장비'].includes(r.ResourceType||r.type));
+    const row3=pjRes.filter(r=>!['인원','장비'].includes(r.ResourceType||r.type));
+
+    function makeRow(list, iconSvgStr, iconColor, iconBg, rowId){
+      if(!list.length) return '';
+      const SHOW=4;
+      const visible=list.slice(0,SHOW);
+      const hidden=list.slice(SHOW);
+      const visHtml=visible.map(makeRchip).join('');
+      const hidHtml=hidden.length?`
+        <div class="rchip more-rchip" onclick="toggleRchips('${rowId}',this)">
+          <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+          +${hidden.length}개 더보기
+        </div>
+        <div class="hidden-rchips" id="${rowId}">${hidden.map(makeRchip).join('')}</div>`:'';
+      return `<div class="dash-res-row">
+        <div class="dash-row-icon" style="background:${iconBg};color:${iconColor}">
+          <svg viewBox="0 0 24 24">${iconSvgStr}</svg>
+        </div>
+        <div class="dash-row-chips">${visHtml}${hidHtml}</div>
+      </div>`;
+    }
+
+    const personSvg='<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>';
+    const equipSvg='<circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>';
+    const otherSvg='<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>';
+
+    const r1Html=makeRow(row1,personSvg,'#5B3FA6','#EEE8FF',uid_pj+'_r1');
+    const r2Html=makeRow(row2,equipSvg,'#D97706','#FEF3C7',uid_pj+'_r2');
+    const r3Html=makeRow(row3,otherSvg,'#6B7590','#F0F2F7',uid_pj+'_r3');
+    const divider1=r1Html&&(r2Html||r3Html)?'<div class="dash-divider"></div>':'';
+    const divider2=r2Html&&r3Html?'<div class="dash-divider"></div>':'';
+
+    return `<div class="dash-pj-card">
+      <div class="dash-pj-hd" onclick="showPjDetail('${p.id}')">
+        <span class="dash-pj-dot" style="background:${p.Color||'#888'}"></span>
+        <span class="dash-pj-name">${p.Title}</span>
+        <span class="dash-badge db-blue">${p.Status||'진행중'}</span>
+        ${ddayBadge}
+        <span class="dash-badge db-gray">리소스 ${pjRes.length}개</span>
+      </div>
+      <div class="dash-pj-cost">
+        <span class="dash-cost-label">이번달 지출</span>
+        <span class="dash-cost-val">${fmtMoney(monthSpent)}</span>
+        <span class="dash-cost-label" style="margin-left:12px">누적 지출</span>
+        <span class="dash-cost-val">${(totalSpent/10000).toFixed(0)}만원</span>
+      </div>
+      <div class="dash-res-body">
+        ${r1Html}${divider1}${r2Html}${divider2}${r3Html}
+        ${!pjRes.length?'<div style="font-size:11px;color:var(--gray-400);padding:4px 0">등록된 리소스가 없습니다</div>':''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('dash-pj-area').innerHTML=pjHtml||'<div class="empty"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><p>진행중인 프로젝트가 없습니다</p></div>';
+
+  /* ── 월별 비용 차트 ── */
+  renderDashChart(allPjs);
+}
+
+function toggleRchips(id,btn){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const open=el.classList.toggle('open');
+  const moreSvg='<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>';
+  const upSvg='<polyline points="18 15 12 9 6 15"/>';
+  btn.innerHTML=open
+    ?`<svg viewBox="0 0 24 24">${upSvg}</svg>접기`
+    :`<svg viewBox="0 0 24 24">${moreSvg}</svg>+더보기`;
+}
+
+function renderDashChart(pjs){
+  if(!pjs.length){document.getElementById('dash-chart-area').innerHTML='';return;}
+  // 최근 6개월
+  const months=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-i);
+    months.push(d.toISOString().slice(0,7));
+  }
+  // 프로젝트별 월별 합계
+  const pjData=pjs.map(p=>{
+    const pjExp=expenses.filter(e=>(e.ProjectName||'')===(p.BizplayName||p.Title));
+    const monthly=months.map(m=>pjExp.filter(e=>(e.ExpenseDate||'').startsWith(m)).reduce((s,e)=>s+Number(e.Amount||0),0));
+    return{p,monthly};
+  });
+  const maxVal=Math.max(...pjData.flatMap(d=>d.monthly),1);
+
+  const rowsHtml=pjData.map(({p,monthly})=>{
+    const bars=monthly.map(v=>{
+      const h=Math.max(Math.round((v/maxVal)*44),v>0?3:0);
+      const tip=v>0?fmtMoney(v):'0원';
+      return `<div class="dash-month-col"><div class="dash-bar" style="height:${h}px;background:${p.Color||'#888'}" title="${tip}"></div></div>`;
+    }).join('');
+    return `<div class="dash-chart-row">
+      <div class="dash-chart-label">${p.Title.length>8?p.Title.slice(0,8)+'…':p.Title}</div>
+      <div class="dash-chart-bars">${bars}</div>
+    </div>`;
+  }).join('');
+
+  const monthLabels=months.map(m=>`<div class="dash-month-l">${m.slice(5)}월</div>`).join('');
+  const legend=pjData.map(({p})=>`<div class="dash-leg"><div class="dash-leg-dot" style="background:${p.Color||'#888'}"></div>${p.Title.length>10?p.Title.slice(0,10)+'…':p.Title}</div>`).join('');
+
+  document.getElementById('dash-chart-area').innerHTML=`
+    <div class="dash-chart-card">
+      <div class="dash-chart-title">프로젝트별 월별 지출 비교</div>
+      <div class="dash-chart-wrap">${rowsHtml}</div>
+      <div class="dash-month-labels">${monthLabels}</div>
+      <div class="dash-chart-legend">${legend}</div>
+    </div>`;
 }
 
 /* ════ 리소스 목록 ════ */
@@ -1465,13 +1639,34 @@ function doParseExcel(file){
   });
 }
 
+/* ════ Teams/모바일 감지 ════ */
+function isTeamsOrMobile(){
+  const ua=navigator.userAgent.toLowerCase();
+  return ua.includes('teams')||(/android|iphone|ipad/i.test(ua))||(window.self!==window.top);
+}
+async function signIn(){
+  try{
+    if(isTeamsOrMobile()){await msalApp.loginRedirect({scopes:SCOPES});}
+    else{const res=await msalApp.loginPopup({scopes:SCOPES});currentUser=res.account;await initApp();}
+  }catch(e){
+    if((e.errorCode||'').includes('popup')||(e.message||'').includes('interaction_in_progress')){
+      await msalApp.loginRedirect({scopes:SCOPES});
+    }else{toast('로그인 실패: '+e.message);}
+  }
+}
 /* ════ 앱 시작 ════ */
 async function start(){
   await msalApp.initialize();
-  try{await msalApp.handleRedirectPromise();}catch(e){}
+  try{
+    const r=await msalApp.handleRedirectPromise();
+    if(r&&r.account){currentUser=r.account;await initApp();return;}
+  }catch(e){console.warn(e);}
   const accounts=msalApp.getAllAccounts();
   if(accounts.length>0){currentUser=accounts[0];await initApp();}
-  else{document.getElementById('login-screen').classList.add('show');}
+  else{
+    try{const r=await msalApp.ssoSilent({scopes:SCOPES});currentUser=r.account;await initApp();}
+    catch(e){document.getElementById('login-screen').classList.add('show');}
+  }
 }
 start();
 </script>
