@@ -1690,18 +1690,18 @@ async function uploadExpenses(input){
     const rows=await parseExcel(file);if(!rows.length){toast('❌ 데이터가 없습니다');hideLoader();return;}
     showLoader(`${rows.length}건 업로드 준비 중...`);
     const fieldsList=rows.map(row=>{
-      const memo=row['품명(적요)']||row['품명']||'';
+      const memo=row['4. 품명(적요)']||row['품명(적요)']||row['품명']||'';
       const parts=memo.split('/');
       const title=parts[0].trim();
       const rawPjName=parts.length>1?parts[parts.length-1].trim():'';
       const matchedPj=rawPjName?projects.find(p=>(p.BizplayName&&p.BizplayName.trim()===rawPjName)||(p.Title&&p.Title.trim()===rawPjName)):null;
       const projectName=matchedPj?(matchedPj.BizplayName||matchedPj.Title):(rawPjName||'미분류');
-      const dateStr=String(row['일자']||row['1. 일자']||'');
+      const dateStr=String(row['1. 일자']||row['일자']||'');
       const expDate=dateStr.length===8?`${dateStr.slice(0,4)}-${dateStr.slice(4,6)}-${dateStr.slice(6,8)}`:dateStr;
       /* 카드번호 유무로 카드/계좌이체 자동 분류 */
-      const cardNum=row['카드번호']||row['4. 카드번호']||'';
+      const cardNum=row['카드번호']||row['4. 카드번호']||row['카드번호 ']||'';
       const expType=cardNum?'카드':'계좌이체';
-      return{Title:title||'(내용없음)',ProjectName:projectName,ExpenseDate:expDate||null,Merchant:row['거래처(가맹점명)']||row['2. 거래처(가맹점명)']||'',Amount:Number(row['합계']||row['9. 합계']||0),SupplyAmount:Number(row['공급가액']||row['6. 공급가액']||0),TaxAmount:Number(row['세액']||row['7. 세액']||0),Category:row['계정명']||'',CardNumber:cardNum,CardCompany:row['카드사']||'',ExpenseType:expType,TransactionType:row['거래구분(승인,취소)']||row['11. 거래구분(승인,취소)']||'승인'};
+      return{Title:title||'(내용없음)',ProjectName:projectName,ExpenseDate:expDate||null,Merchant:row['2. 거래처(가맹점명)']||row['거래처(가맹점명)']||'',Amount:Number(row['9. 합계']||row['합계']||0),SupplyAmount:Number(row['공급가액']||row['6. 공급가액']||0),TaxAmount:Number(row['세액']||row['7. 세액']||0),Category:row['계정명']||row['계정코드']||'',CardNumber:cardNum,CardCompany:row['카드사']||'',ExpenseType:expType,TransactionType:row['11. 거래구분(승인,취소)']||row['거래구분(승인,취소)']||'승인'};
     });
     await batchAddItems(CONFIG.lists.expenses,fieldsList);
     await loadAll();toast(`✅ ${rows.length}건 업로드 완료`);
