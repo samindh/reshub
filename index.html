@@ -1335,13 +1335,18 @@ function showDetail(id){
   /* 인원 연결 리소스 */
   let personResHtml='';
   if(isPersonnel&&r.Title){
-    const matched=resources.filter(x=>x.id!==r.id&&(x.Assignee===r.Title||x.Assignee===r.Assignee));
+    const personName=r.Title||'';
+    const matched=resources.filter(x=>
+      x.id!==r.id &&
+      x.ResourceType!=='인원' &&
+      (x.Assignee===personName||x.Assignee2===personName)
+    );
     const byPj={};matched.forEach(x=>{const pjName=x.ProjectName||'-';if(!byPj[pjName])byPj[pjName]=[];byPj[pjName].push(x);});
     if(matched.length){
       personResHtml=`<div style="padding:0 18px 12px"><div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:7px">👤 ${r.Title} 배정 리소스</div><div class="person-res-grid">${matched.map(x=>{const xt=getT(x.ResourceType||x.type);return`<div class="person-res-item" onclick="closeOv('ov-detail');showDetail('${x.id}')"><div class="person-res-icon" style="background:${xt.bg};color:${xt.color}">${iconSvg(xt,13)}</div><div><div class="person-res-name">${x.Title}</div><div class="person-res-type">${xt.id}</div></div></div>`;}).join('')}</div></div>`;
     }
     /* 지급 작업복 */
-    const wwItems=workwearItems.filter(w=>w.AssignedTo===r.Title||w.AssignedTo===r.Assignee);
+    const wwItems=workwearItems.filter(w=>w.AssignedTo===personName);
     if(wwItems.length){
       personResHtml+=`<div style="padding:0 18px 12px"><div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:7px">👕 지급 작업복</div>${wwItems.map(w=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--gray-100);font-size:11px"><span style="flex:1;font-weight:700">${w.Title}</span><span style="color:var(--gray-500)">${w.Size||'-'}</span><span style="color:var(--gray-400);font-size:10px">${fmt(w.IssueDate)}</span></div>`).join('')}</div>`;
     }
