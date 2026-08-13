@@ -390,6 +390,42 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
 }
 #ov-photo{background:rgba(0,0,0,.9);align-items:center;justify-content:center}
 #photo-full{max-width:95%;max-height:90dvh;border-radius:var(--radius-lg);object-fit:contain}
+
+
+.cost-bottom-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-radius:var(--radius-xl) var(--radius-xl) 0 0;border-top:1px solid var(--gray-200);padding:0 0 env(safe-area-inset-bottom,12px);z-index:300;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 -4px 24px rgba(0,0,0,.12)}
+.cost-bottom-sheet.open{transform:translateY(0)}
+.cost-bs-handle{width:36px;height:4px;background:var(--gray-300);border-radius:2px;margin:10px auto 0}
+.cost-bs-hd{padding:10px 18px 6px;display:flex;align-items:center;gap:8px}
+.cost-bs-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.cost-bs-title{font-size:13px;font-weight:700;color:var(--gray-800);flex:1}
+.cost-bs-close{width:26px;height:26px;border-radius:50%;border:none;background:var(--gray-100);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gray-600)}
+.cost-bs-close svg{width:13px;height:13px;stroke:currentColor;fill:none}
+.cost-bs-body{padding:6px 18px 14px;max-height:55vh;overflow-y:auto}
+.cost-bs-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:12px}
+.cost-bs-card{background:var(--gray-50);border-radius:var(--radius-md);padding:8px 10px;text-align:center}
+.cost-bs-label{font-size:9px;color:var(--gray-500);font-weight:700;text-transform:uppercase;margin-bottom:3px}
+.cost-bs-val{font-size:13px;font-weight:800;color:var(--gray-800)}
+.cost-bs-bars{display:flex;align-items:flex-end;gap:4px;height:52px;margin-bottom:4px}
+.cost-bs-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.cost-bs-col:hover .cost-bs-bar{opacity:.7}
+.cost-bs-col.sel .cost-bs-bar{box-shadow:0 0 0 2px var(--blue)}
+.cost-bs-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:opacity .15s}
+.cost-bs-mlabel{font-size:8px;color:var(--gray-400);font-weight:600}
+.cost-bs-detail{margin-top:10px;border-top:1px solid var(--gray-100);padding-top:8px}
+.cost-bs-detail-title{font-size:10px;font-weight:700;color:var(--blue);margin-bottom:6px}
+.cost-bs-item{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--gray-100);font-size:11px}
+.cost-bs-item:last-child{border-bottom:none}
+.cost-bs-item-date{color:var(--gray-400);min-width:44px;font-size:10px}
+.cost-bs-item-desc{flex:1;color:var(--gray-600);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cost-bs-item-type{font-size:8px;padding:1px 5px;border-radius:3px;font-weight:700;white-space:nowrap}
+.cbt-card{background:var(--blue-light);color:var(--blue)}
+.cbt-transfer{background:var(--green-light);color:var(--green)}
+.cost-bs-item-amt{font-weight:700;color:var(--gray-800);min-width:64px;text-align:right}
+.cost-bs-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:299}
+.cost-bs-overlay.open{display:block}
+/* 비용 버튼 */
+.dash-cost-btn{font-size:9px;padding:2px 7px;border-radius:5px;border:none;background:var(--blue-light);color:var(--blue);cursor:pointer;font-family:var(--font);font-weight:700;white-space:nowrap;display:none}
+@media(max-width:768px){.dash-cost-btn{display:inline-block}}
 </style>
 </head>
 <body>
@@ -488,7 +524,7 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
         </div>
         <div id="card-view"><div class="cards-grid" id="res-cards"></div></div>
         <div id="tbl-view" style="display:none"><div class="twrap"><div class="tscroll">
-          <table class="table"><thead><tr><th>유형</th><th>이름</th><th>프로젝트</th><th>상태</th><th>담당자(정)</th><th>계약종료</th><th>잔여일</th></tr></thead><tbody id="res-tbody"></tbody></table>
+          <table class="table"><thead><tr><th>유형</th><th>이름</th><th>프로젝트</th><th>상태</th><th>담당자(정)</th><th>단가</th><th>계약종료</th><th>잔여일</th></tr></thead><tbody id="res-tbody"></tbody></table>
         </div></div></div>
       </div>
     </div>
@@ -560,6 +596,19 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
       </div>
     </div>
   </div>
+
+<!-- 모바일 비용 바텀시트 오버레이 -->
+<div class="cost-bs-overlay" id="cost-bs-overlay" onclick="closeCostBS()"></div>
+<!-- 모바일 비용 바텀시트 -->
+<div class="cost-bottom-sheet" id="cost-bottom-sheet">
+  <div class="cost-bs-handle"></div>
+  <div class="cost-bs-hd">
+    <span class="cost-bs-dot" id="cost-bs-dot"></span>
+    <span class="cost-bs-title" id="cost-bs-title">비용 현황</span>
+    <button class="cost-bs-close" onclick="closeCostBS()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="cost-bs-body" id="cost-bs-body"></div>
+</div>
 </div>
 </div>
 
@@ -1089,6 +1138,7 @@ function renderDash(){
         <div class="dash-sep"></div>
         <div class="dash-cost-grp"><div class="dash-cost-lbl">누적</div><div class="dash-cost-val">${fmtW(totalSpent)}</div></div>
         <div class="sparkline">${spHtml}</div>
+        <button class="dash-cost-btn" onclick="event.stopPropagation();openCostBS('${p.id}')">비용 ↑</button>
       </div>
       ${isMobile?hintHtml:''}
       <div class="dash-res-body" id="${uid_pj}_body" style="${isMobile?'display:none':''}">
@@ -1208,6 +1258,7 @@ function renderResources(){
         <td>${pj?`<span style="display:inline-flex;align-items:center;gap:4px"><span class="pj-dot" style="background:${pj.Color||'#888'}"></span>${pj.Title}</span>`:'-'}</td>
         <td>${badge(r.Status||'사용중')}</td>
         <td>${r.Assignee?`<div class="av">${r.Assignee[0]}</div>`:'-'}</td>
+        <td style="color:var(--gray-600)">${r.UnitCost?fmtMoney(r.UnitCost)+' / '+r.CostUnit:'-'}</td>
         <td style="color:var(--gray-500)">${fmt(r.ContractEnd)||'-'}</td>
         <td>${dStr}</td>
       </tr>`;
@@ -1791,6 +1842,65 @@ async function delWorkwear(wwId){
 function openOv(id){document.getElementById(id).classList.add('open')}
 function closeOv(id){document.getElementById(id).classList.remove('open')}
 document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open')}));
+
+
+/* ════ 모바일 비용 바텀시트 ════ */
+let curBsPjId=null, curBsMonth=null;
+function openCostBS(pjId){
+  const p=projects.find(x=>x.id===pjId);if(!p)return;
+  curBsPjId=pjId;
+  document.getElementById('cost-bs-dot').style.background=p.Color||'#888';
+  document.getElementById('cost-bs-title').textContent=p.Title+' — 비용 현황';
+  renderCostBS(p);
+  document.getElementById('cost-bottom-sheet').classList.add('open');
+  document.getElementById('cost-bs-overlay').classList.add('open');
+}
+function closeCostBS(){
+  document.getElementById('cost-bottom-sheet').classList.remove('open');
+  document.getElementById('cost-bs-overlay').classList.remove('open');
+}
+function renderCostBS(p){
+  const pjExp=expenses.filter(e=>(e.ProjectName||'')===(p.BizplayName||p.Title));
+  const months6=[];for(let i=5;i>=0;i--){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);months6.push(d.toISOString().slice(0,7));}
+  const mAmts=months6.map(m=>pjExp.filter(e=>(e.ExpenseDate||'').startsWith(m)).reduce((s,e)=>s+Number(e.Amount||0),0));
+  const maxA=Math.max(...mAmts,1);
+  const thisMonth=new Date().toISOString().slice(0,7);
+  const selM=curBsMonth&&months6.includes(curBsMonth)?curBsMonth:thisMonth;
+  const totalSpent=pjExp.reduce((s,e)=>s+Number(e.Amount||0),0);
+  const thisSpent=pjExp.filter(e=>(e.ExpenseDate||'').startsWith(thisMonth)).reduce((s,e)=>s+Number(e.Amount||0),0);
+  const selSpent=pjExp.filter(e=>(e.ExpenseDate||'').startsWith(selM)).reduce((s,e)=>s+Number(e.Amount||0),0);
+  const barsHtml=months6.map((m,i)=>{
+    const h=Math.max(Math.round((mAmts[i]/maxA)*48),mAmts[i]>0?3:0);
+    const isSel=m===selM;
+    return`<div class="cost-bs-col ${isSel?'sel':''}" onclick="selBsMonth('${p.id}','${m}')">
+      <div class="cost-bs-bar" style="height:${h}px;background:${isSel?p.Color||'var(--blue)':'var(--blue-mid)'}"></div>
+      <div class="cost-bs-mlabel" style="color:${isSel?p.Color||'var(--blue)':'var(--gray-400)'}">${m.slice(5)}월</div>
+    </div>`;
+  }).join('');
+  const selDetails=pjExp.filter(e=>(e.ExpenseDate||'').startsWith(selM)).sort((a,b)=>a.ExpenseDate>b.ExpenseDate?1:-1);
+  const detailHtml=selDetails.map(e=>`<div class="cost-bs-item">
+    <span class="cost-bs-item-date">${fmt(e.ExpenseDate)}</span>
+    <span class="cost-bs-item-desc">${e.Title||e.Merchant||'-'}</span>
+    <span class="cost-bs-item-type ${(e.ExpenseType||'카드')==='계좌이체'?'cbt-transfer':'cbt-card'}">${e.ExpenseType||'카드'}</span>
+    <span class="cost-bs-item-amt">${fmtMoney(e.Amount)}</span>
+  </div>`).join('');
+  document.getElementById('cost-bs-body').innerHTML=`
+    <div class="cost-bs-summary">
+      <div class="cost-bs-card"><div class="cost-bs-label">이번달</div><div class="cost-bs-val">${fmtMoney(thisSpent)}</div></div>
+      <div class="cost-bs-card"><div class="cost-bs-label">누적</div><div class="cost-bs-val">${fmtW(totalSpent)}</div></div>
+      <div class="cost-bs-card"><div class="cost-bs-label">건수</div><div class="cost-bs-val">${pjExp.length}건</div></div>
+    </div>
+    <div style="font-size:10px;font-weight:700;color:var(--gray-500);margin-bottom:5px">월별 지출 (막대 클릭 시 상세)</div>
+    <div class="cost-bs-bars">${barsHtml}</div>
+    <div class="cost-bs-detail">
+      <div class="cost-bs-detail-title">${selM.slice(5)}월 상세 — ${fmtMoney(selSpent)}</div>
+      ${detailHtml||'<div style="font-size:11px;color:var(--gray-400);text-align:center;padding:10px">해당 월 비용 없음</div>'}
+    </div>`;
+}
+function selBsMonth(pjId,m){
+  curBsMonth=m;
+  const p=projects.find(x=>x.id===pjId);if(p)renderCostBS(p);
+}
 
 /* ════ 대시보드 리사이저 ════ */
 function initResizer(){
