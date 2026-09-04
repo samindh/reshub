@@ -479,7 +479,7 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
   <div class="nav-item" id="nav-노트북" onclick="typeFilter('노트북')"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>노트북</div>
   <div class="nav-item" id="nav-인터넷" onclick="typeFilter('인터넷')"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>인터넷</div>
   <div class="nav-item" id="nav-법인카드" onclick="typeFilter('법인카드')"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>법인카드</div>
-  <div class="nav-item" id="nav-장비" onclick="typeFilter('장비')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>장비</div>
+  <div class="nav-item" id="nav-장비" onclick="typeFilter('장비')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>장비</div>  <div class="nav-item" id="nav-비품" onclick="typeFilter('비품')"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>비품</div>
   <div class="nav-item" id="nav-기타" onclick="typeFilter('기타')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>기타</div>
   <div class="sidebar-footer">
     <div class="user-info">
@@ -851,7 +851,7 @@ const TYPES=[
   {id:'노트북',color:'#B45309',bg:'#FEF3C7',svg:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>'},
   {id:'인터넷',color:'#C0392B',bg:'#FEE2E2',svg:'<path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>'},
   {id:'법인카드',color:'#0D6E6E',bg:'#E6F5F5',svg:'<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>'},
-  {id:'장비',color:'#D97706',bg:'#FEF3C7',svg:'<circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>'},
+  {id:'장비',color:'#D97706',bg:'#FEF3C7',svg:'<circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>'},  {id:'비품',color:'#9333EA',bg:'#F3E8FF',svg:'<path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>'},
   {id:'기타',color:'#6B7590',bg:'#F0F2F7',svg:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'},
 ];
 
@@ -863,7 +863,7 @@ const EXTRA_FIELDS={
     {id:'serial',label:'시리얼번호',type:'text',placeholder:'예: SN-12345'},
     {id:'purchaseDate',label:'구입시기',type:'month',placeholder:''},
     {id:'calibDate',label:'검교정일',type:'month',placeholder:''},
-  ],
+  ],  '비품':[    {id:'itemName',label:'품목/모델명',type:'text',placeholder:'예: 사무용 의자, HP 프린터 M126'},    {id:'assetNo',label:'관리번호(자산번호)',type:'text',placeholder:'예: AS-2026-001'},    {id:'vendor',label:'구매처',type:'text',placeholder:'예: 쿠팡, ㅇㅇ문구'},    {id:'purchaseDate',label:'구매일',type:'date',placeholder:''},    {id:'price',label:'가격',type:'number',placeholder:'구매 가격(원)'},    {id:'location',label:'보관위치',type:'text',placeholder:'예: 본사 3층 창고'},  ],
 };
 
 /* ════ 유틸 ════ */
