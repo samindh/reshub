@@ -63,6 +63,9 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
 .tl-legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:12px;font-size:11px;color:var(--gray-500)}
 .tl-legend span{display:inline-flex;align-items:center;gap:6px}
 .tl-legend i{width:11px;height:8px;border-radius:3px;display:inline-block}
+.tl-legend i.hatch-warn{background:repeating-linear-gradient(135deg,#FEF3C7,#FEF3C7 3px,#FCD34D 3px,#FCD34D 6px);border:1px solid #92400E}
+.tl-legend i.hatch-crit{background:repeating-linear-gradient(135deg,#FEE2E2,#FEE2E2 3px,#F87171 3px,#F87171 6px);border:1px solid #991B1B}
+.tl-legend i.hatch-surplus{background:repeating-linear-gradient(135deg,var(--teal-light),var(--teal-light) 3px,#5EC9C9 3px,#5EC9C9 6px);border:1px solid var(--teal)}
 .tl-ganttcard{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px}
 .tl-scroll{overflow-x:auto;overflow-y:hidden}
 .tl-grid{display:grid;grid-template-columns:190px var(--tlw,1440px);width:max-content;min-width:100%}
@@ -1487,11 +1490,11 @@ function renderTimeline(){
     return `<span class="tl-chip ${core?'core':''} ${on?'active':''}" onclick="tlSetType('${t.id}')">${iconSvg(t,12)}${t.id}</span>`;
   }).join('')}</div><div class="tl-spacer"></div><div class="tl-fgroup"><span class="tl-flabel">표시 기간</span><div class="tl-seg">${[6,12,18,24].map(m=>`<button class="${m===tlPeriodMonths?'active':''}" onclick="tlSetPeriod(${m})">${m}개월</button>`).join('')}</div></div></div>`;
   html+=`<div class="tl-legend">
-    <span><i style="background:#0E7A4E"></i>정상</span>
-    <span><i style="background:#92400E"></i>공백주의 (90일 이내)</span>
-    <span><i style="background:#991B1B"></i>공백위험 (90일 초과)</span>
-    <span><i style="background:var(--teal)"></i>재배치가능</span>
-    <span><i style="background:var(--gray-400)"></i>무기한</span>
+    <span><i style="background:#E6F5EE;border:1px solid #0E7A4E"></i>정상 (프로젝트 기간과 일치)</span>
+    <span><i class="hatch-warn"></i>공백주의 (계약종료가 90일 이내로 더 빠름)</span>
+    <span><i class="hatch-crit"></i>공백위험 (계약종료가 90일 초과로 더 빠름)</span>
+    <span><i class="hatch-surplus"></i>재배치가능 (종료 후 14일 초과 잔여)</span>
+    <span><i style="background:var(--gray-100);border:1px solid var(--gray-400)"></i>무기한 (계약종료일 없음)</span>
   </div>`;
 
   let rows='';
