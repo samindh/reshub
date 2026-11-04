@@ -73,6 +73,7 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
 .tl-cell{border-bottom:1px solid var(--gray-100)}
 .tl-label-cell{position:sticky;left:0;z-index:3;background:var(--white);padding:0;border-right:1px solid var(--gray-200)}
 .tl-tl-cell{position:relative}
+.tl-head-cell{position:sticky;top:0;z-index:4;background:var(--white)}
 .tl-proj-row .tl-label-cell,.tl-proj-row .tl-tl-cell{background:var(--gray-50)}
 .tl-proj-nm{display:flex;flex-direction:column;gap:2px;padding:10px 12px;min-height:46px;justify-content:center}
 .tl-proj-nm .nm{font-size:13px;font-weight:800;display:flex;align-items:center;gap:7px;color:var(--gray-800);cursor:pointer}
@@ -1469,6 +1470,13 @@ function tlStatus(res,proj){
   if(-gap>14) return {cls:'surplus',label:'재배치가능',gap:gap};
   return {cls:'good',label:'정상',gap:gap};
 }
+function tlSyncHeaderOffset(){
+  const bar=document.querySelector('.tl-sticky-bar');
+  const cells=document.querySelectorAll('.tl-head-cell');
+  if(!bar||!cells.length) return;
+  const h=bar.getBoundingClientRect().height;
+  cells.forEach(c=>{c.style.top=h+'px';});
+}
 function renderTimeline(){
   const root=document.getElementById('timeline-root');
   if(!root) return;
@@ -1507,8 +1515,8 @@ function renderTimeline(){
   const todayLeft=pxOf(todayDate);
   const todayHtml=`<div class="tl-today" style="left:${todayLeft}px"><span class="tl-today-flag">오늘</span></div>`;
   const todayLineHtml=`<div class="tl-today" style="left:${todayLeft}px"></div>`;
-  rows+=`<div class="tl-cell tl-label-cell" style="display:flex;align-items:center;padding-left:12px;font-size:11px;color:var(--gray-500);font-weight:700">프로젝트 / 리소스</div>`;
-  rows+=`<div class="tl-cell tl-tl-cell" style="height:30px">${ticks}${todayHtml}</div>`;
+  rows+=`<div class="tl-cell tl-label-cell tl-head-cell" style="display:flex;align-items:center;padding-left:12px;font-size:11px;color:var(--gray-500);font-weight:700">프로젝트 / 리소스</div>`;
+  rows+=`<div class="tl-cell tl-tl-cell tl-head-cell" style="height:30px">${ticks}${todayHtml}</div>`;
 
   if(!activePjs.length){
     rows+=`<div class="tl-cell tl-label-cell" style="padding:14px;color:var(--gray-400);font-size:12px">진행중/예정 프로젝트가 없습니다</div><div class="tl-cell tl-tl-cell"></div>`;
@@ -1589,6 +1597,8 @@ function renderTimeline(){
   html+=`<div class="tl-note">가정: 리소스는 프로젝트 시작일부터 배정된 것으로 가정하여 바를 표시합니다(실제 배정 시작일은 더 늦을 수 있음). 상태색은 계약종료일이 프로젝트 종료일보다 얼마나 이른지로 계산합니다(90일 초과=공백위험, 1~90일=공백주의, 종료 후 14일 초과 잔여=재배치가능).</div>`;
 
   root.innerHTML=html;
+  tlSyncHeaderOffset();
+  if(!window.__tlResizeBound){window.__tlResizeBound=true;window.addEventListener('resize',tlSyncHeaderOffset);}
 
   document.getElementById('tl-stats-root').innerHTML=`
     <div class="tl-stat"><div class="tl-stat-num">${resources.length}</div><div class="tl-stat-label">배정 리소스 (${projects.length}개 프로젝트)</div></div>
