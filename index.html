@@ -73,7 +73,10 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
 .tl-cell{border-bottom:1px solid var(--gray-100)}
 .tl-label-cell{position:sticky;left:0;z-index:3;background:var(--white);padding:0;border-right:1px solid var(--gray-200)}
 .tl-tl-cell{position:relative}
-.tl-head-cell{position:sticky;top:0;z-index:4;background:var(--white)}
+.tl-head-wrap{position:sticky;top:0;z-index:4;background:var(--white);display:flex;border-bottom:1px solid var(--gray-100)}
+.tl-head-label{width:190px;flex-shrink:0;display:flex;align-items:center;padding-left:12px;font-size:11px;color:var(--gray-500);font-weight:700;border-right:1px solid var(--gray-200)}
+.tl-head-viewport{flex:1;overflow:hidden;position:relative;height:30px}
+.tl-head-track{position:absolute;top:0;left:0;height:30px}
 .tl-proj-row .tl-label-cell,.tl-proj-row .tl-tl-cell{background:var(--gray-50)}
 .tl-proj-nm{display:flex;flex-direction:column;gap:2px;padding:10px 12px;min-height:46px;justify-content:center}
 .tl-proj-nm .nm{font-size:13px;font-weight:800;display:flex;align-items:center;gap:7px;color:var(--gray-800);cursor:pointer}
@@ -101,7 +104,7 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
 .tl-surplus{position:absolute;top:0;height:20px;border-radius:5px;background:repeating-linear-gradient(135deg,var(--teal-light) 0 4px,transparent 4px 8px);border:1px dashed var(--teal)}
 .tl-empty{position:absolute;left:0;right:0;top:4px;height:16px;border:1px dashed var(--gray-200);border-radius:5px;display:flex;align-items:center;padding:0 8px;font-size:10px;color:var(--gray-400)}
 .tl-empty.urgent{border-color:#991B1B;color:#991B1B;background:#FEE2E2}
-.tl-head .tl-tl-cell{height:30px}
+
 .tl-month{position:absolute;top:0;bottom:0;border-left:1px solid var(--gray-100);padding-left:5px;font-size:10px;color:var(--gray-400);display:flex;align-items:center;font-variant-numeric:tabular-nums}
 .tl-today{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed #991B1B;z-index:2}
 .tl-today-flag{position:absolute;top:2px;left:4px;font-size:9.5px;font-weight:800;color:#991B1B;background:var(--white);padding:0 4px;border-radius:3px;white-space:nowrap}
@@ -1472,10 +1475,9 @@ function tlStatus(res,proj){
 }
 function tlSyncHeaderOffset(){
   const bar=document.querySelector('.tl-sticky-bar');
-  const cells=document.querySelectorAll('.tl-head-cell');
-  if(!bar||!cells.length) return;
-  const h=bar.getBoundingClientRect().height;
-  cells.forEach(c=>{c.style.top=h+'px';});
+  const wrap=document.querySelector('.tl-head-wrap');
+  if(!bar||!wrap) return;
+  wrap.style.top=bar.getBoundingClientRect().height+'px';
 }
 function renderTimeline(){
   const root=document.getElementById('timeline-root');
@@ -1515,8 +1517,6 @@ function renderTimeline(){
   const todayLeft=pxOf(todayDate);
   const todayHtml=`<div class="tl-today" style="left:${todayLeft}px"><span class="tl-today-flag">오늘</span></div>`;
   const todayLineHtml=`<div class="tl-today" style="left:${todayLeft}px"></div>`;
-  rows+=`<div class="tl-cell tl-label-cell tl-head-cell" style="display:flex;align-items:center;padding-left:12px;font-size:11px;color:var(--gray-500);font-weight:700">프로젝트 / 리소스</div>`;
-  rows+=`<div class="tl-cell tl-tl-cell tl-head-cell" style="height:30px">${ticks}${todayHtml}</div>`;
 
   if(!activePjs.length){
     rows+=`<div class="tl-cell tl-label-cell" style="padding:14px;color:var(--gray-400);font-size:12px">진행중/예정 프로젝트가 없습니다</div><div class="tl-cell tl-tl-cell"></div>`;
@@ -1569,7 +1569,8 @@ function renderTimeline(){
     });
   });
 
-  html+=`<div class="tl-ganttcard"><div class="tl-scroll"><div class="tl-grid" style="--tlw:${tlW}px">${rows}</div></div></div>`;
+  const headHtml=`<div class="tl-head-wrap"><div class="tl-head-label">프로젝트 / 리소스</div><div class="tl-head-viewport"><div class="tl-head-track" id="tl-head-track" style="width:${tlW}px">${ticks}${todayHtml}</div></div></div>`;
+  html+=`<div class="tl-ganttcard">${headHtml}<div class="tl-scroll" id="tl-scroll-el"><div class="tl-grid" style="--tlw:${tlW}px">${rows}</div></div></div>`;
 
   const all=resources.map(r=>{
     const p=getPj(r.ProjectName||r.project);
@@ -1599,6 +1600,11 @@ function renderTimeline(){
   root.innerHTML=html;
   tlSyncHeaderOffset();
   if(!window.__tlResizeBound){window.__tlResizeBound=true;window.addEventListener('resize',tlSyncHeaderOffset);}
+  const tlScrollEl=document.getElementById('tl-scroll-el');
+  const tlHeadTrack=document.getElementById('tl-head-track');
+  if(tlScrollEl&&tlHeadTrack){
+    tlScrollEl.addEventListener('scroll',()=>{tlHeadTrack.style.transform='translateX(-'+tlScrollEl.scrollLeft+'px)';},{passive:true});
+  }
 
   document.getElementById('tl-stats-root').innerHTML=`
     <div class="tl-stat"><div class="tl-stat-num">${resources.length}</div><div class="tl-stat-label">배정 리소스 (${projects.length}개 프로젝트)</div></div>
