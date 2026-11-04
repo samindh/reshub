@@ -49,6 +49,7 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
 .tl-stat.crit .tl-stat-num{color:#991B1B}
 .tl-stat.warn .tl-stat-num{color:#92400E}
 .tl-stat.info .tl-stat-num{color:var(--teal)}
+.tl-sticky-bar{position:sticky;top:0;z-index:5;background:var(--gray-50);padding-top:2px;padding-bottom:2px;box-shadow:0 1px 0 var(--gray-200)}
 .tl-filters{display:flex;flex-wrap:wrap;align-items:center;gap:16px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:10px 14px;margin-bottom:10px;box-shadow:var(--shadow-sm)}
 .tl-fgroup{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .tl-flabel{font-size:11px;font-weight:700;color:var(--gray-500);margin-right:2px}
@@ -1485,7 +1486,7 @@ function renderTimeline(){
 
   let html='';
   html+=`<div class="tl-stats" id="tl-stats-root"></div>`;
-  html+=`<div class="tl-filters"><div class="tl-fgroup"><span class="tl-flabel">리소스 유형</span>${TYPES.map(t=>{
+  html+=`<div class="tl-sticky-bar"><div class="tl-filters"><div class="tl-fgroup"><span class="tl-flabel">리소스 유형</span>${TYPES.map(t=>{
     const core=CORE.includes(t.id), on=tlActiveTypes.has(t.id);
     return `<span class="tl-chip ${core?'core':''} ${on?'active':''}" onclick="tlSetType('${t.id}')">${iconSvg(t,12)}${t.id}</span>`;
   }).join('')}</div><div class="tl-spacer"></div><div class="tl-fgroup"><span class="tl-flabel">표시 기간</span><div class="tl-seg">${[6,12,18,24].map(m=>`<button class="${m===tlPeriodMonths?'active':''}" onclick="tlSetPeriod(${m})">${m}개월</button>`).join('')}</div></div></div>`;
@@ -1495,7 +1496,7 @@ function renderTimeline(){
     <span><i class="hatch-crit"></i>공백위험 (계약종료가 90일 초과로 더 빠름)</span>
     <span><i class="hatch-surplus"></i>재배치가능 (종료 후 14일 초과 잔여)</span>
     <span><i style="background:var(--gray-100);border:1px solid var(--gray-400)"></i>무기한 (계약종료일 없음)</span>
-  </div>`;
+  </div></div>`;
 
   let rows='';
   let ticks='';
@@ -1505,6 +1506,7 @@ function renderTimeline(){
   }
   const todayLeft=pxOf(todayDate);
   const todayHtml=`<div class="tl-today" style="left:${todayLeft}px"><span class="tl-today-flag">오늘</span></div>`;
+  const todayLineHtml=`<div class="tl-today" style="left:${todayLeft}px"></div>`;
   rows+=`<div class="tl-cell tl-label-cell" style="display:flex;align-items:center;padding-left:12px;font-size:11px;color:var(--gray-500);font-weight:700">프로젝트 / 리소스</div>`;
   rows+=`<div class="tl-cell tl-tl-cell" style="height:30px">${ticks}${todayHtml}</div>`;
 
@@ -1522,7 +1524,7 @@ function renderTimeline(){
     const envL=pxOf(pStart), envR=pxOf(pEnd);
     const clTag=clipL(pStart)?`<span class="tl-cliptag" style="left:2px">‹‹ ${fmt(p.StartDate)} 시작</span>`:'';
     const crTag=clipR(pEnd)?`<span class="tl-cliptag" style="right:2px">${fmt(p.EndDate)} 종료 ››</span>`:'';
-    rows+=`<div class="tl-cell tl-tl-cell tl-proj-row" style="min-height:46px"><div class="tl-env" style="left:${envL}px;width:${Math.max(2,envR-envL)}px;background:${p.Color||'#888'}22;border:1px solid ${p.Color||'#888'}55"></div>${clTag}${crTag}${todayHtml}</div>`;
+    rows+=`<div class="tl-cell tl-tl-cell tl-proj-row" style="min-height:46px"><div class="tl-env" style="left:${envL}px;width:${Math.max(2,envR-envL)}px;background:${p.Color||'#888'}22;border:1px solid ${p.Color||'#888'}55"></div>${clTag}${crTag}${todayLineHtml}</div>`;
 
     const pjRes=resources.filter(r=>{const rp=r.ProjectName||r.project||'';return rp===p.id||rp===p.Title;});
     const lanes=TYPES.filter(t=>tlActiveTypes.has(t.id)).map(t=>({t:t,items:pjRes.filter(r=>(r.ResourceType||r.type)===t.id)})).filter(l=>CORE.includes(l.t.id)||l.items.length);
@@ -1531,7 +1533,7 @@ function renderTimeline(){
       rows+=`<div class="tl-cell tl-label-cell"><div class="tl-lane-label">${iconSvg(lane.t,13)}${lane.t.id}</div></div>`;
       if(!lane.items.length){
         const urgent=p.Status==='예정'&&CORE.includes(lane.t.id);
-        rows+=`<div class="tl-cell tl-tl-cell" style="min-height:30px"><div class="tl-empty ${urgent?'urgent':''}" style="left:${envL}px;width:${Math.max(120,envR-envL)}px">${urgent?'⚠ 배정 필요':'배정 없음'}</div>${todayHtml}</div>`;
+        rows+=`<div class="tl-cell tl-tl-cell" style="min-height:30px"><div class="tl-empty ${urgent?'urgent':''}" style="left:${envL}px;width:${Math.max(120,envR-envL)}px">${urgent?'⚠ 배정 필요':'배정 없음'}</div>${todayLineHtml}</div>`;
         return;
       }
       let pillsHtml='';
@@ -1555,7 +1557,7 @@ function renderTimeline(){
         }
       });
       const laneH=Math.max(30,lane.items.length*24+6);
-      rows+=`<div class="tl-cell tl-tl-cell" style="min-height:${laneH}px">${pillsHtml}${todayHtml}</div>`;
+      rows+=`<div class="tl-cell tl-tl-cell" style="min-height:${laneH}px">${pillsHtml}${todayLineHtml}</div>`;
     });
   });
 
