@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ResHub — 프로젝트 리소스 관리</title>
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.28.0/lib/msal-browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -513,6 +514,40 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
 /* 비용 버튼 */
 .dash-cost-btn{font-size:9px;padding:2px 7px;border-radius:5px;border:none;background:var(--blue-light);color:var(--blue);cursor:pointer;font-family:var(--font);font-weight:700;white-space:nowrap;display:none}
 @media(max-width:768px){.dash-cost-btn{display:inline-block}}
+
+/* ---------- 스티커 선택 카드 ---------- */
+.sticker-pick-card{position:relative}
+.sticker-pick-card.picked{outline:2px solid var(--blue);outline-offset:-2px}
+.sticker-chk{margin-left:auto;width:20px;height:20px;border-radius:50%;border:2px solid var(--gray-300);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.sticker-chk.on{background:var(--blue);border-color:var(--blue)}
+.sticker-pick-card .card-top{display:flex;align-items:flex-start}
+
+/* ---------- Print : Formtec LQ-3106 (64x34mm, 3 x 8 = 24칸, A4) ---------- */
+#printSheet{display:none}
+@media print{
+  @page{ size:A4; margin:0; }
+  body.printing > *:not(#printSheet){ display:none !important; }
+  body.printing #printSheet{ display:block !important; }
+  .sheet{
+    position:relative; width:210mm; height:297mm; background:#fff;
+    page-break-after:always;
+  }
+  .sheet:last-child{ page-break-after:auto; }
+  .p-sticker{
+    position:absolute; width:64mm; height:34mm; box-sizing:border-box;
+    border:1px dashed #ccc; padding:2.6mm 3.2mm;
+    display:flex; flex-direction:column; justify-content:space-between; background:#fff;
+    font-family:var(--font);
+  }
+  .p-sticker .st-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:2mm; }
+  .p-sticker .st-eyebrow{ font-size:6.5pt; letter-spacing:.06em; text-transform:uppercase; color:#555; }
+  .p-sticker .st-name{ font-size:9.5pt; font-weight:700; line-height:1.2; color:#111; margin-top:1mm; }
+  .p-sticker .st-spec{ font-size:6.8pt; color:#666; margin-top:.6mm; line-height:1.25; }
+  .p-sticker .st-qr{ width:16mm; height:16mm; flex:none; }
+  .p-sticker .st-qr img{ width:100% !important; height:100% !important; }
+  .p-sticker .st-no{ font-size:10pt; font-weight:700; }
+  .p-sticker .st-foot{ font-size:6.3pt; color:#555; display:flex; justify-content:space-between; gap:2mm; }
+}
 </style>
 </head>
 <body>
@@ -558,6 +593,10 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
   <div class="nav-item" id="nav-workwear" onclick="goPage('workwear')">
     <svg viewBox="0 0 24 24"><path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/></svg>
     작업복 재고<span class="nav-badge" id="nb-w">0</span>
+  </div>
+  <div class="nav-item" id="nav-stickers" onclick="goPage('stickers')">
+    <svg viewBox="0 0 24 24"><path d="M20.59 13.41L13.42 20.58a2 2 0 01-2.83 0L2.59 12.59a2 2 0 010-2.83l7.17-7.17A2 2 0 0111.17 2H18a2 2 0 012 2v6.83a2 2 0 01-.59 1.41z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+    스티커 인쐐
   </div>
   <span class="nav-sec" style="margin-top:6px">카테고리</span>
   <div class="nav-item" id="nav-숙소" onclick="typeFilter('숙소')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>숙소</div>
@@ -658,6 +697,22 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
           <table class="table"><thead><tr><th>품명</th><th>카테고리</th><th>사이즈</th><th>단가</th><th>총수량</th><th>재고</th><th>지급인원</th><th>불출일</th><th>관리</th></tr></thead>
           <tbody id="ww-tbody"></tbody></table>
         </div></div>
+      </div>
+    </div>
+    <!-- 스티커 인쐐 (인원 제외 전 유형) -->
+    <div class="page" id="page-stickers">
+      <div class="page-content">
+        <div class="sec-hd">
+          <span class="sec-title">스티커 인쐐 — 폼텍 LQ-3106 (64×34mm, 3열×8행)</span>
+          <span id="sticker-count" style="font-size:11px;color:var(--gray-500);font-weight:600"></span>
+        </div>
+        <div class="filter-bar" id="sticker-filter-bar"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="stickerSelectAll()">전체 선택</button>
+          <button class="btn btn-sm" onclick="stickerSelectNone()">선택 해제</button>
+          <button class="btn btn-sm btn-primary" onclick="printStickers()" style="margin-left:auto">🏷 선택 스티커 인쐐 (<span id="sticker-pick-count">0</span>)</button>
+        </div>
+        <div class="cards-grid" id="sticker-cards"></div>
       </div>
     </div>
   </div>
@@ -926,6 +981,8 @@ const SCOPES=['https://graph.microsoft.com/Sites.ReadWrite.All','https://graph.m
 let currentUser=null,siteId=null;
 let projects=[],resources=[],expenses=[],workwearItems=[];
 let curPage='dashboard',curFilter='전체',curView='card';
+let curStickerFilter='전체',stickerPicked=new Set();
+const LABEL_GRID={left:6,top:13,lw:64,lh:34,colgap:2,rowgap:0,cols:3,rows:8}; // 폼텍 LQ-3106 실측값
 let editingId=null,curDetail=null,selType='숙소',selPjColor='#1A5FA8';
 let pendingPhotos=[],editingExpId=null,editingWwId=null;
 let curPjDetailTab='resources',curResCostMonth=null;
@@ -1092,6 +1149,7 @@ async function initApp(){
   }catch(e){console.error(e);toast('❌ 데이터 로드 실패: '+e.message);}
   finally{hideLoader();}
   renderDash();
+  handleResourceDeepLink();
 }
 async function loadAll(){
   [projects,resources,expenses,workwearItems]=await Promise.all([
@@ -1123,13 +1181,14 @@ function goPage(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   setNav('nav-'+page);curPage=page;curFilter='전체';
-  const titles={dashboard:'대시보드',resources:'전체 리소스',projects:'프로젝트 목록',expenses:'비용 관리',workwear:'작업복 재고',timeline:'타임라인'};
+  const titles={dashboard:'대시보드',resources:'전체 리소스',projects:'프로젝트 목록',expenses:'비용 관리',workwear:'작업복 재고',timeline:'타임라인',stickers:'스티커 인쐐'};
   document.getElementById('topbar-title').textContent=titles[page]||page;
   if(page==='dashboard') renderDash();
   if(page==='resources') renderResources();
   if(page==='projects') renderProjects();
   if(page==='expenses') renderExpenses();
   if(page==='workwear') renderWorkwear();if(page==='timeline') renderTimeline();
+  if(page==='stickers') renderStickers();
   closeSidebar();
 }
 function typeFilter(type){
@@ -1357,6 +1416,131 @@ function renderFilterBar(){
   document.getElementById('filter-bar').innerHTML=['전체',...TYPES.map(t=>t.id)].map(t=>`<span class="fchip ${curFilter===t?'active':''}" onclick="setFilter('${t}')">${t}</span>`).join('');
 }
 function setFilter(t){curFilter=t;renderResources();}
+
+/* ════ 스티커 인쐐 (인원 제외) ════ */
+function resourceDeepLink(id){
+  return location.origin+location.pathname+'?resource='+encodeURIComponent(id);
+}
+function qrDataUrl(text,size){
+  try{
+    var holder=document.createElement('div');
+    holder.style.cssText='position:fixed;left:-9999px;top:-9999px;';
+    document.body.appendChild(holder);
+    new QRCode(holder,{text:text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M});
+    var canvas=holder.querySelector('canvas');
+    var url=canvas?canvas.toDataURL('image/png'):'';
+    document.body.removeChild(holder);
+    return url;
+  }catch(e){ return ''; }
+}
+function qrImgHtml(text,size){
+  var url=qrDataUrl(text,size);
+  return url?('<img src="'+url+'" alt="QR" style="width:100%;height:100%;display:block;">')
+             :'<div style="width:100%;height:100%;border:1px dashed #bbb;"></div>';
+}
+function stickerLabelFields(r){
+  const t=getT(r.ResourceType||r.type);
+  const pj=getPj(r.ProjectName||r.project);
+  let spec='';
+  try{
+    const extra=JSON.parse(r.ExtraFields||'{}');
+    if(r.ResourceType==='장비') spec=[extra.subtype,extra.spec].filter(Boolean).join(' · ');
+    else if(r.ResourceType==='비품') spec=extra.itemName||'';
+    else if(r.ResourceType==='노트북') spec=extra.spec||'';
+  }catch(e){}
+  if(!spec) spec=r.Assignee?('담당 '+r.Assignee):'';
+  return{
+    eyebrow:t.id,
+    name:r.Title||r.name||'',
+    spec:spec,
+    no:'#'+r.id,
+    foot:pj?pj.Title:(r.Assignee||'')
+  };
+}
+function makeStickerCard(r){
+  const t=getT(r.ResourceType||r.type);
+  const picked=stickerPicked.has(r.id);
+  return`<div class="res-card sticker-pick-card ${picked?'picked':''}" onclick="toggleSticker('${r.id}')">
+    <div class="card-top" style="padding:10px 10px 0"><div class="res-icon" style="background:${t.bg};color:${t.color}">${iconSvg(t)}</div>
+      <div class="sticker-chk ${picked?'on':''}">${picked?'✓':''}</div>
+    </div>
+    <div class="card-body" style="padding-top:4px">
+      <div class="card-name">${r.Title||r.name}</div>
+      <div class="card-meta">${t.id}${r.Assignee?' · '+r.Assignee:''}</div>
+    </div>
+  </div>`;
+}
+function toggleSticker(id){
+  if(stickerPicked.has(id)) stickerPicked.delete(id); else stickerPicked.add(id);
+  renderStickers();
+}
+function renderStickerFilterBar(){
+  const types=TYPES.filter(t=>t.id!=='인원');
+  document.getElementById('sticker-filter-bar').innerHTML=['전체',...types.map(t=>t.id)]
+    .map(t=>`<span class="fchip ${curStickerFilter===t?'active':''}" onclick="setStickerFilter('${t}')">${t}</span>`).join('');
+}
+function setStickerFilter(t){curStickerFilter=t;renderStickers();}
+function stickerCurrentList(){
+  let list=resources.filter(r=>(r.ResourceType||r.type)!=='인원');
+  if(curStickerFilter!=='전체') list=list.filter(r=>(r.ResourceType||r.type)===curStickerFilter);
+  return list;
+}
+function stickerSelectAll(){ stickerCurrentList().forEach(r=>stickerPicked.add(r.id)); renderStickers(); }
+function stickerSelectNone(){ stickerCurrentList().forEach(r=>stickerPicked.delete(r.id)); renderStickers(); }
+function renderStickers(){
+  const list=stickerCurrentList();
+  document.getElementById('sticker-count').textContent=`${list.length}개 (인원 제외)`;
+  document.getElementById('sticker-pick-count').textContent=stickerPicked.size;
+  document.getElementById('sticker-cards').innerHTML=list.length
+    ? list.map(makeStickerCard).join('')
+    : `<div class="empty"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>대상 리소스가 없습니다</p></div>`;
+  renderStickerFilterBar();
+}
+function printStickers(ids){
+  const list=ids&&ids.length?ids:Array.from(stickerPicked);
+  if(list.length===0){ toast('선택된 리소스가 없습니다'); return; }
+  const perSheet=LABEL_GRID.cols*LABEL_GRID.rows;
+  const skipStr=window.prompt('이미 사용한 칸이 있다면 건너뛸 칸 수를 입력하세요 (새 시트면 0).\n한 시트당 '+perSheet+'칸입니다.','0');
+  if(skipStr===null) return;
+  const skip=Math.max(0,Math.min(perSheet-1,parseInt(skipStr,10)||0));
+  const sheets={};
+  list.forEach((id,i)=>{
+    const r=resources.find(x=>x.id===id); if(!r) return;
+    const f=stickerLabelFields(r);
+    const cellIndex=skip+i;
+    const sheetIndex=Math.floor(cellIndex/perSheet);
+    const posInSheet=cellIndex%perSheet;
+    const row=Math.floor(posInSheet/LABEL_GRID.cols);
+    const col=posInSheet%LABEL_GRID.cols;
+    const left=LABEL_GRID.left+col*(LABEL_GRID.lw+LABEL_GRID.colgap);
+    const top=LABEL_GRID.top+row*(LABEL_GRID.lh+LABEL_GRID.rowgap);
+    const card=`<div class="p-sticker" style="left:${left}mm;top:${top}mm;">`
+      +`<div class="st-top"><div><div class="st-eyebrow">${f.eyebrow}</div><div class="st-name">${f.name}</div>${f.spec?('<div class="st-spec">'+f.spec+'</div>'):''}</div>`
+      +`<div class="st-qr">${qrImgHtml(resourceDeepLink(id),220)}</div></div>`
+      +`<div><div class="st-no">${f.no}</div><div class="st-foot"><span>${f.foot}</span></div></div>`
+      +`</div>`;
+    if(!sheets[sheetIndex]) sheets[sheetIndex]=[];
+    sheets[sheetIndex].push(card);
+  });
+  const sheetHtml=Object.keys(sheets).sort((a,b)=>a-b).map(k=>`<div class="sheet">${sheets[k].join('')}</div>`).join('');
+  let buffer=document.getElementById('printSheet');
+  if(!buffer){
+    buffer=document.createElement('div');
+    buffer.id='printSheet';
+    document.body.appendChild(buffer);
+  }
+  buffer.innerHTML=sheetHtml;
+  document.body.classList.add('printing');
+  try{ window.print(); }catch(e){}
+  let cleaned=false;
+  function cleanup(){ if(cleaned) return; cleaned=true; document.body.classList.remove('printing'); buffer.innerHTML=''; }
+  window.addEventListener('afterprint',cleanup,{once:true});
+  setTimeout(cleanup,4000);
+}
+function handleResourceDeepLink(){
+  const p=new URLSearchParams(location.search).get('resource');
+  if(p && resources.find(r=>r.id===p)) showDetail(p);
+}
 
 /* ════ 프로젝트 목록 ════ */
 function renderProjects(){
@@ -1701,6 +1885,7 @@ function showDetail(id){
         ${pj?`<p><span class="pj-dot" style="background:${pj.Color||'#888'}"></span>${pj.Title}</p>`:''}
         ${ddayHtml}
       </div>
+      ${isPersonnel?'':`<button class="btn btn-sm" onclick="printStickers(['${r.id}'])" style="flex-shrink:0">🏷 스티커 인쐐</button>`}
     </div>
     <div class="attr-grid">${baseAttrs}</div>
     ${extraHtml}
