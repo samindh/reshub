@@ -544,7 +544,7 @@ html,body{height:100%;font-family:var(--font);font-size:14px;background:var(--gr
   .p-sticker .st-name{ font-size:9.5pt; font-weight:700; line-height:1.2; color:#111; margin-top:1mm; }
   .p-sticker .st-spec{ font-size:6.8pt; color:#666; margin-top:.6mm; line-height:1.25; }
   .p-sticker .st-qr{ width:16mm; height:16mm; flex:none; }
-  .p-sticker .st-qr img{ width:100% !important; height:100% !important; }
+  .p-sticker .st-qr img,.p-sticker .st-qr canvas{ width:100% !important; height:100% !important; }
   .p-sticker .st-no{ font-size:10pt; font-weight:700; }
   .p-sticker .st-foot{ font-size:6.3pt; color:#555; display:flex; justify-content:space-between; gap:2mm; }
 }
@@ -1438,6 +1438,23 @@ function qrImgHtml(text,size){
   return url?('<img src="'+url+'" alt="QR" style="width:100%;height:100%;display:block;">')
              :'<div style="width:100%;height:100%;border:1px dashed #bbb;"></div>';
 }
+function qrCanvas(text,size){
+  try{
+    var holder=document.createElement('div');
+    holder.style.cssText='position:fixed;left:-9999px;top:-9999px;';
+    document.body.appendChild(holder);
+    new QRCode(holder,{text:text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M});
+    var canvas=holder.querySelector('canvas');
+    if(canvas){
+      canvas.style.width='100%';
+      canvas.style.height='100%';
+      canvas.style.display='block';
+      holder.removeChild(canvas);
+    }
+    document.body.removeChild(holder);
+    return canvas;
+  }catch(e){ return null; }
+}
 function stickerLabelFields(r){
   const t=getT(r.ResourceType||r.type);
   const pj=getPj(r.ProjectName||r.project);
@@ -1516,7 +1533,7 @@ function printStickers(ids){
     const top=LABEL_GRID.top+row*(LABEL_GRID.lh+LABEL_GRID.rowgap);
     const card=`<div class="p-sticker" style="left:${left}mm;top:${top}mm;">`
       +`<div class="st-top"><div><div class="st-eyebrow">${f.eyebrow}</div><div class="st-name">${f.name}</div>${f.spec?('<div class="st-spec">'+f.spec+'</div>'):''}</div>`
-      +`<div class="st-qr">${qrImgHtml(resourceDeepLink(id),220)}</div></div>`
+      +`<div class="st-qr" data-qr-id="${id}"></div></div>`
       +`<div><div class="st-no">${f.no}</div><div class="st-foot"><span>${f.foot}</span></div></div>`
       +`</div>`;
     if(!sheets[sheetIndex]) sheets[sheetIndex]=[];
@@ -1530,6 +1547,12 @@ function printStickers(ids){
     document.body.appendChild(buffer);
   }
   buffer.innerHTML=sheetHtml;
+  list.forEach(id=>{
+    const slot=buffer.querySelector('.st-qr[data-qr-id="'+id+'"]');
+    if(!slot) return;
+    const canvas=qrCanvas(resourceDeepLink(id),220);
+    if(canvas) slot.appendChild(canvas);
+  });
   document.body.classList.add('printing');
   try{ window.print(); }catch(e){}
   let cleaned=false;
