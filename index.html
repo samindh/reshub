@@ -1135,21 +1135,39 @@ async function uploadPhoto(file){
 
 /* 배치 업로드 */
 async function batchAddItems(listName,fieldsList){
-  const BATCH=20,PARALLEL=5;
-  const listPath=`/sites/${siteId}/lists/${listName}/items`;
-  const chunks=[];
-  for(let i=0;i<fieldsList.length;i+=BATCH) chunks.push(fieldsList.slice(i,i+BATCH));
-  let done=0;
-  for(let i=0;i<chunks.length;i+=PARALLEL){
-    const group=chunks.slice(i,i+PARALLEL);
-    await Promise.all(group.map(async chunk=>{
-      const token=await getToken();
-      const batchBody={requests:chunk.map((fields,idx)=>({id:String(idx+1),method:'POST',url:listPath,headers:{'Content-Type':'application/json'},body:{fields}}))};
-      await fetch('https://graph.microsoft.com/v1.0/$batch',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(batchBody)});
-      done+=chunk.length;
-      showLoader(`업로드 중... ${done}/${fieldsList.length}건`);
-    }));
-  }
+    const BATCH=20,PARALLEL=3,MAX_ATTEMPTS=3;
+    const listPath=`/sites/${siteId}/lists/${listName}/items`;
+    let pending=fieldsList.map(fields=>({fields}));
+    const total=fieldsList.length;
+    let done=0;
+    for(let attempt=1;attempt<=MAX_ATTEMPTS&&pending.length;attempt++){
+          const chunks=[];
+          for(let i=0;i<pending.length;i+=BATCH) chunks.push(pending.slice(i,i+BATCH));
+          const nextPending=[];
+          for(let i=0;i<chunks.length;i+=PARALLEL){
+                  const group=chunks.slice(i,i+PARALLEL);
+                  await Promise.all(group.map(async chunk=>{
+                            const token=await getToken();
+                            const batchBody={requests:chunk.map((item,idx)=>({id:String(idx+1),method:'POST',url:listPath,headers:{'Content-Type':'application/json'},body:{fields:item.fields}}))};
+                            let resJson=null;
+                            try{
+                                        const res=await fetch('https://graph.microsoft.com/v1.0/$batch',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(batchBody)});
+                                        resJson=await res.json();
+                            }catch(e){resJson=null;}
+                            const responses=(resJson&&resJson.responses)||[];
+                            chunk.forEach((item,idx)=>{
+                                        const r=responses.find(x=>x.id===String(idx+1));
+                                        if(r&&r.status>=200&&r.status<300){done++;}
+                                        else{nextPending.push(item);}
+                            });
+                            showLoader(`업로드 중... ${done}/${total}건${attempt>1?` (재시도 ${attempt-1}회차)`:''}`);
+                  }));
+                  if(i+PARALLEL<chunks.length) await new Promise(r=>setTimeout(r,500));
+          }
+          pending=nextPending;
+          if(pending.length&&attempt<MAX_ATTEMPTS) await new Promise(r=>setTimeout(r,1000*attempt));
+    }
+    return{succeeded:done,failed:pending.map(p=>p.fields)};
 }
 
 /* ════ 앱 초기화 ════ */
@@ -2307,8 +2325,13 @@ async function uploadExpenses(input){
       const expType=cardNum?'카드':'계좌이체';
       return{Title:title||'(내용없음)',ProjectName:projectName,ExpenseDate:expDate||null,Merchant:row['2. 거래처(가맹점명)']||row['거래처(가맹점명)']||'',Amount:Number(row['9. 합계']||row['합계']||0),SupplyAmount:Number(row['공급가액']||row['6. 공급가액']||0),TaxAmount:Number(row['세액']||row['7. 세액']||0),Category:row['계정명']||row['계정코드']||'',CardNumber:cardNum,CardCompany:row['카드사']||'',ExpenseType:expType,TransactionType:row['11. 거래구분(승인,취소)']||row['거래구분(승인,취소)']||'승인'};
     });
-    await batchAddItems(CONFIG.lists.expenses,fieldsList);
-    await loadAll();toast(`✅ ${rows.length}건 업로드 완료`);
+const result=await batchAddItems(CONFIG.lists.expenses,fieldsList);
+        await loadAll();
+        if(result.failed&&result.failed.length){
+                toast(`⚠️ ${result.succeeded}건 업로드 완료, ${result.failed.length}건 실패 (다시 업로드해주세요)`);
+        }else{
+                toast(`✅ ${result.succeeded}건 업로드 완료`);
+        }
     if(curPage==='expenses')renderExpenses();renderDash();
   }catch(e){console.error(e);toast('❌ 업로드 실패: '+e.message);}
   finally{hideLoader();input.value='';}
