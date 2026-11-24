@@ -2311,12 +2311,15 @@ async function uploadExpenses(input){
   try{
     const rows=await parseExcel(file);if(!rows.length){toast('❌ 데이터가 없습니다');hideLoader();return;}
     showLoader(`${rows.length}건 업로드 준비 중...`);
+const normPjStr=s=>(s||'').replace(/[\s.,_()·\-]/g,'').toLowerCase();
     const fieldsList=rows.map(row=>{
       const memo=row['4. 품명(적요)']||row['품명(적요)']||row['품명']||'';
       const parts=memo.split('/');
       const title=parts[0].trim();
       const rawPjName=parts.length>1?parts[parts.length-1].trim():'';
-      const matchedPj=rawPjName?projects.find(p=>(p.BizplayName&&p.BizplayName.trim()===rawPjName)||(p.Title&&p.Title.trim()===rawPjName)):null;
+      const rawPjNorm=normPjStr(rawPjName);
+      let matchedPj=null,matchedLen=0;
+      if(rawPjNorm){for(const p of projects){const key=normPjStr(p.BizplayName||p.Title);if(key&&(rawPjNorm.includes(key)||key.includes(rawPjNorm))&&key.length>matchedLen){matchedPj=p;matchedLen=key.length;}}}
       const projectName=matchedPj?(matchedPj.BizplayName||matchedPj.Title):(rawPjName||'미분류');
       const dateStr=String(row['1. 일자']||row['일자']||'');
       const expDate=dateStr.length===8?`${dateStr.slice(0,4)}-${dateStr.slice(4,6)}-${dateStr.slice(6,8)}`:dateStr;
