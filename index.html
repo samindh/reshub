@@ -1034,7 +1034,7 @@ const getT=id=>TYPES.find(t=>t.id===id)||TYPES[TYPES.length-1];
 const getPj=id=>projects.find(p=>p.id===id)||projects.find(p=>p.Title===id);
 const fmt=d=>d?d.substring(0,10).replace(/-/g,'.'):'';
 const fmtMoney=n=>n?Number(n).toLocaleString('ko-KR')+'원':'0원';
-const fmtW=n=>n?(Number(n)/10000).toFixed(0)+'만원':'0원';
+const fmtW=n=>n?Math.round(Number(n)/1000).toLocaleString('ko-KR')+'천원':'0원';
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
 const sLabel=s=>s==='사용중'?'사용중':s==='사용가능'?'사용가능':'점검중';
 const sCls=s=>s==='사용가능'?'s-av':s==='사용중'?'s-use':'s-mnt';
