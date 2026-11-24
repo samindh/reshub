@@ -993,12 +993,14 @@ const SCOPES=['https://graph.microsoft.com/Sites.ReadWrite.All','https://graph.m
 let currentUser=null,siteId=null;
 let projects=[],resources=[],expenses=[],workwearItems=[];
 let curPage='dashboard',curFilter='전체',curView='card';
+  let curExpMonthFilter='',curExpCatFilter='';
 let curStickerFilter='전체',stickerPicked=new Set();
 const LABEL_GRID={left:6,top:13,lw:64,lh:34,colgap:2,rowgap:0,cols:3,rows:8}; // 폼텍 LQ-3106 실측값
 let editingId=null,curDetail=null,selType='숙소',selPjColor='#1A5FA8';
 let curExtraLists={};
 let pendingPhotos=[],editingExpId=null,editingWwId=null;
 let curPjDetailTab='resources',curResCostMonth=null;
+  let curDashSelPj=null;
 
 /* ════ 타입 정의 ════ */
 const TYPES=[
@@ -1217,7 +1219,7 @@ function setNav(id){
 function goPage(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
-  setNav('nav-'+page);curPage=page;curFilter='전체';
+  setNav('nav-'+page);curPage=page;curFilter='전체';curExpMonthFilter='';curExpCatFilter='';
   const titles={dashboard:'대시보드',resources:'전체 리소스',projects:'프로젝트 목록',expenses:'비용 관리',workwear:'작업복 재고',timeline:'타임라인',stickers:'스티커 인쐐'};
   document.getElementById('topbar-title').textContent=titles[page]||page;
   if(page==='dashboard') renderDash();
@@ -1307,10 +1309,10 @@ function renderDash(){
     const isOpen=!isMobile;
     const hintHtml=isMobile?`<div class="dash-collapsed-hint" id="${uid_pj}_hint"><svg viewBox="0 0 24 24">${pSvg}</svg>${row1.map(r=>r.Title).slice(0,2).join(', ')}${row1.length>2?' 외 '+(row1.length-2)+'명':''} · 리소스 ${pjRes.length}개</div>`:'';
 
-    return`<div class="dash-pj-card">
-      <div class="dash-pj-hd" onclick="toggleDashCard('${uid_pj}')">
-        <span class="dash-pj-dot" style="background:${p.Color||'#888'}"></span>
-        <span class="dash-pj-name">${p.Title}</span>
+return`<div class="dash-pj-card" style="${curDashSelPj===p.id?'box-shadow:0 0 0 2px '+(p.Color||'#1A5FA8')+';':''}">
+<div class="dash-pj-hd" onclick="toggleDashCard('${uid_pj}')">
+<span class="dash-pj-dot" style="background:${p.Color||'#888'};cursor:pointer" onclick="event.stopPropagation();selectDashProject('${p.id}')"></span>
+<span class="dash-pj-name" style="cursor:pointer" onclick="event.stopPropagation();selectDashProject('${p.id}')" title="클릭하면 우측에 이 프로젝트의 월별 지출이 크게 표시됩니다">${p.Title}</span>
         <span class="dash-badge db-blue">${p.Status||'진행중'}</span>
         ${ddayBdg}
         <span class="dash-badge db-gray">${pjRes.length}개</span>
@@ -1350,20 +1352,49 @@ function toggleDashCard(uid){
 function renderDashRight(pjs){
   const months6=[];
   for(let i=5;i>=0;i--){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);months6.push(d.toISOString().slice(0,7));}
+  const selPj=curDashSelPj?projects.find(p=>p.id===curDashSelPj):null;
+  const selMonth=curResCostMonth&&months6.includes(curResCostMonth)?curResCostMonth:new Date().toISOString().slice(0,7);
 
-  /* 월별 비교 차트 */
-  const pjData=pjs.map(p=>{
-    const pjExp=expenses.filter(e=>(e.ProjectName||'')===(p.BizplayName||p.Title));
+  /* 월별 비교/확대 차트 */
+  let topPanelHtml;
+  if(selPj){
+    const pjExp=expenses.filter(e=>(e.ProjectName||'')===(selPj.BizplayName||selPj.Title));
     const monthly=months6.map(m=>pjExp.filter(e=>(e.ExpenseDate||'').startsWith(m)).reduce((s,e)=>s+Number(e.Amount||0),0));
-    return{p,monthly};
-  });
-  const maxVal=Math.max(...pjData.flatMap(d=>d.monthly),1);
-  const chartRows=pjData.map(({p,monthly})=>{
-    const bars=monthly.map(v=>{const h=Math.max(Math.round((v/maxVal)*36),v>0?2:0);return`<div class="dash-month-col"><div class="dash-bar" style="height:${h}px;background:${p.Color||'#888'}" title="${fmtMoney(v)}"></div></div>`;}).join('');
-    return`<div class="dash-chart-row"><div class="dash-chart-lbl">${p.Title.length>7?p.Title.slice(0,7)+'…':p.Title}</div><div class="dash-chart-bars">${bars}</div></div>`;
-  }).join('');
-  const monthLabels=months6.map(m=>`<div class="dash-month-l">${m.slice(5)}월</div>`).join('');
-  const legend=pjData.map(({p})=>`<div class="dash-leg"><div class="dash-leg-dot" style="background:${p.Color||'#888'}"></div>${p.Title.length>8?p.Title.slice(0,8)+'…':p.Title}</div>`).join('');
+    const maxA=Math.max(...monthly,1);
+    const bigBars=monthly.map((v,i)=>{
+      const h=Math.max(Math.round((v/maxA)*90),v>0?3:0);
+      const isSel=months6[i]===selMonth;
+      return`<div class="dash-month-col"><div class="dash-bar" style="height:${h}px;background:${isSel?(selPj.Color||'#1A5FA8'):'var(--blue-mid)'}" title="${fmtMoney(v)}" onclick="selDashMonth('${months6[i]}')"></div></div>`;
+    }).join('');
+    const monthLabels=months6.map(m=>`<div class="dash-month-l">${m.slice(5)}월</div>`).join('');
+    topPanelHtml=`<div class="dash-panel-card">
+      <div class="dash-panel-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>${selPj.Title} 월별 지출</span>
+        <button class="btn btn-xs" onclick="clearDashProjectSel()">✕ 전체보기</button>
+      </div>
+      <div class="dash-chart-bars" style="height:90px;margin-top:8px">${bigBars}</div>
+      <div class="dash-month-labels" style="margin-left:0">${monthLabels}</div>
+    </div>`;
+  }else{
+    const pjData=pjs.map(p=>{
+      const pjExp=expenses.filter(e=>(e.ProjectName||'')===(p.BizplayName||p.Title));
+      const monthly=months6.map(m=>pjExp.filter(e=>(e.ExpenseDate||'').startsWith(m)).reduce((s,e)=>s+Number(e.Amount||0),0));
+      return{p,monthly};
+    });
+    const maxVal=Math.max(...pjData.flatMap(d=>d.monthly),1);
+    const chartRows=pjData.map(({p,monthly})=>{
+      const bars=monthly.map(v=>{const h=Math.max(Math.round((v/maxVal)*36),v>0?2:0);return`<div class="dash-month-col"><div class="dash-bar" style="height:${h}px;background:${p.Color||'#888'}" title="${fmtMoney(v)}"></div></div>`;}).join('');
+      return`<div class="dash-chart-row"><div class="dash-chart-lbl">${p.Title.length>7?p.Title.slice(0,7)+'…':p.Title}</div><div class="dash-chart-bars">${bars}</div></div>`;
+    }).join('');
+    const monthLabels=months6.map(m=>`<div class="dash-month-l">${m.slice(5)}월</div>`).join('');
+    const legend=pjData.map(({p})=>`<div class="dash-leg" style="cursor:pointer" onclick="selectDashProject('${p.id}')" title="클릭하면 이 프로젝트만 확대해서 봅니다"><div class="dash-leg-dot" style="background:${p.Color||'#888'}"></div>${p.Title.length>8?p.Title.slice(0,8)+'…':p.Title}</div>`).join('');
+    topPanelHtml=`<div class="dash-panel-card">
+      <div class="dash-panel-title"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>월별 지출 비교</div>
+      <div class="dash-chart-wrap">${chartRows}</div>
+      <div class="dash-month-labels">${monthLabels}</div>
+      <div class="dash-legend">${legend}</div>
+    </div>`;
+  }
 
   /* 만료 임박 */
   const expSoon=resources.filter(r=>{const d=calcDday(r.ContractEnd);return d!==null&&d>=0&&d<=30;}).sort((a,b)=>calcDday(a.ContractEnd)-calcDday(b.ContractEnd));
@@ -1373,25 +1404,21 @@ function renderDashRight(pjs){
     return`<div class="alert-item"><span class="dash-badge ${badgeCls}">D-${d}</span><span class="alert-name" onclick="showDetail('${r.id}')" style="cursor:pointer">${r.Title}</span></div>`;
   }).join('');
 
-  /* 월 선택 비용 상세 */
-  const selMonth=curResCostMonth||new Date().toISOString().slice(0,7);
+  /* 월 선택 비용 상세 (프로젝트 선택 시 해당 프로젝트로 한정) */
   const monthBtns=months6.map(m=>`<button class="month-btn ${m===selMonth?'active':''}" onclick="selDashMonth('${m}')">${m.slice(5)}월</button>`).join('');
-  const selExp=expenses.filter(e=>(e.ExpenseDate||'').startsWith(selMonth));
+  let selExp=expenses.filter(e=>(e.ExpenseDate||'').startsWith(selMonth));
+  if(selPj)selExp=selExp.filter(e=>(e.ProjectName||'')===(selPj.BizplayName||selPj.Title));
   const catMap={};selExp.forEach(e=>{catMap[e.Category||'기타']=(catMap[e.Category||'기타']||0)+Number(e.Amount||0);});
   const cats=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
   const maxCat=Math.max(...cats.map(c=>c[1]),1);
-  const catHtml=cats.map(([cat,amt])=>`<div class="cat-row"><span class="cat-name">${cat}</span><div class="cat-bar-bg"><div class="cat-bar" style="width:${Math.round(amt/maxCat*100)}%"></div></div><span class="cat-amt">${fmtW(amt)}</span></div>`).join('');
+  const pjNameForFilter=(selPj?(selPj.BizplayName||selPj.Title):'').replace(/'/g,"\\'");
+  const catHtml=cats.map(([cat,amt])=>`<div class="cat-row" style="cursor:pointer" onclick="goExpenseFiltered('${pjNameForFilter}','${selMonth}','${String(cat).replace(/'/g,"\\'")}')" title="클릭하면 비용 관리에서 상세 내역을 볼 수 있습니다"><span class="cat-name">${cat}</span><div class="cat-bar-bg"><div class="cat-bar" style="width:${Math.round(amt/maxCat*100)}%"></div></div><span class="cat-amt">${fmtW(amt)}</span></div>`).join('');
   const totalSelMonth=selExp.reduce((s,e)=>s+Number(e.Amount||0),0);
 
   document.getElementById('dash-right-panel').innerHTML=`
+    ${topPanelHtml}
     <div class="dash-panel-card">
-      <div class="dash-panel-title"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>월별 지출 비교</div>
-      <div class="dash-chart-wrap">${chartRows}</div>
-      <div class="dash-month-labels">${monthLabels}</div>
-      <div class="dash-legend">${legend}</div>
-    </div>
-    <div class="dash-panel-card">
-      <div class="dash-panel-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>계정별 지출 — <span style="color:var(--blue)">${selMonth.slice(5)}월 ${fmtW(totalSelMonth)}</span></div>
+      <div class="dash-panel-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${selPj?selPj.Title+' ':''}계정별 지출 — <span style="color:var(--blue)">${selMonth.slice(5)}월 ${fmtW(totalSelMonth)}</span></div>
       <div class="month-sel-row">${monthBtns}</div>
       ${catHtml||'<div style="font-size:11px;color:var(--gray-400);text-align:center;padding:10px">해당 월 비용 없음</div>'}
     </div>
@@ -1401,7 +1428,9 @@ function renderDashRight(pjs){
     </div>`:''}`;
 }
 
-function selDashMonth(m){curResCostMonth=m;renderDashRight(projects.filter(p=>!p.Status||p.Status==='진행중'||p.Status===''));}
+function selDashMonth(m){curResCostMonth=m;renderDash();}
+function selectDashProject(pjId){curDashSelPj=pjId;renderDash();}
+function clearDashProjectSel(){curDashSelPj=null;renderDash();}
 
 /* ════ 리소스 카드 ════ */
 function makeCard(r){
@@ -2221,9 +2250,12 @@ async function savePj(){
 /* ════ 비용 관리 ════ */
 function renderExpenses(){
   const pjNames=['전체','미분류',...[...new Set(projects.map(p=>p.BizplayName||p.Title).filter(Boolean))]];
-  document.getElementById('exp-filter-bar').innerHTML=pjNames.map(p=>`<span class="fchip ${curFilter===p?'active':''}" onclick="setExpFilter('${p}')">${p}</span>`).join('');
+  const activeFilterHtml=(curExpMonthFilter||curExpCatFilter)?`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;padding:6px 10px;background:var(--blue-light);border-radius:8px;font-size:11px;font-weight:600;color:var(--blue-dark)">필터: ${curFilter!=='전체'?curFilter+' · ':''}${curExpMonthFilter?curExpMonthFilter.slice(5)+'월 · ':''}${curExpCatFilter||''} <button class="btn btn-xs" onclick="clearExpExtraFilters()">✕ 초기화</button></div>`:'';
+  document.getElementById('exp-filter-bar').innerHTML=activeFilterHtml+pjNames.map(p=>`<span class="fchip ${curFilter===p?'active':''}" onclick="setExpFilter('${p}')">${p}</span>`).join('');
   let list=[...expenses].reverse();
   if(curFilter!=='전체')list=list.filter(e=>(e.ProjectName||'미분류')===curFilter);
+  if(curExpMonthFilter)list=list.filter(e=>(e.ExpenseDate||'').startsWith(curExpMonthFilter));
+  if(curExpCatFilter)list=list.filter(e=>(e.Category||'기타')===curExpCatFilter);
   const isC=t=>(t||'').includes('취소');
   document.getElementById('exp-tbody').innerHTML=list.length?list.map(e=>{
     const pj=projects.find(p=>p.BizplayName===e.ProjectName||p.Title===e.ProjectName);
@@ -2244,6 +2276,14 @@ function renderExpenses(){
   }).join(''):`<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--gray-400)">비용 내역이 없습니다</td></tr>`;
 }
 function setExpFilter(p){curFilter=p;renderExpenses();}
+function goExpenseFiltered(pjName,month,cat){
+  goPage('expenses');
+  curFilter=pjName||'전체';
+  curExpMonthFilter=month||'';
+  curExpCatFilter=cat||'';
+  renderExpenses();
+}
+function clearExpExtraFilters(){curExpMonthFilter='';curExpCatFilter='';renderExpenses();}
 /* 수동 등록 */
 function openManualExpModal(){
   editingExpId=null;
